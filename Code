@@ -5,8 +5,7 @@ import time
 import datetime
 
 #THIS CODE REQUIRES 2 EMAILS. 1 Gmail to send the email, and another to receive the email.
-#Note this code runs with my Gmail, but for privacy purposes I have blanked out my Gmail. 
-#Feel free to Insert your own Gmail and password to try!
+#Note this code runs with my Gmail, but for privacy purposes I have blanked out my Gmail. Feel free to Insert your own Gmail and password to try!
 
 #Stock Market price reminder (YAHOO FINANCE)
 
@@ -32,7 +31,7 @@ def send_mail(identifyVal, nameOfStock, price, URL):
         server.starttls()
         server.ehlo()
 
-        server.login('GMAIL', 'Password') # <----------------------    !!!INSERT GMAIL AND PASSWORD HERE!!!
+        server.login('Gmail', 'Generated Password') # <----------------------    !!!INSERT GMAIL AND PASSWORD HERE!!!
         if identifyVal == 0:                           #If equal 0, the price has fallen below minimumPrice                                 
             subject = nameOfStock + " has fallen below: $" + str(price)
         else:                                          #If equal to anything else, the price has risen above maximumPrice
@@ -40,7 +39,7 @@ def send_mail(identifyVal, nameOfStock, price, URL):
         body = "Check the Yahoo Link: " + URL
         msg = f"Subject: {subject}\n\n{body}"
 
-        server.sendmail('Same GMAIL as the one above', 'Another Email to receive the emails', msg)    #<-------------------- !!!INSERT GMAIL AND ANOTHER RECEIVING EMAIL!!!
+        server.sendmail('Gmail', 'Receiving Email', msg)    #<-------------------- !!!INSERT GMAIL AND ANOTHER RECEIVING EMAIL!!!
 
         print("Email sent")
 
@@ -82,10 +81,19 @@ def main():
         except ValueError:
             print("Price must be a number...")
             
-                
+    while True:
+        timeVariable = input("Please set timer interval in Minutes. (The time you insert will determine how often the program will refresh the Yahoo Finance Page): ")
+        try:
+            if val < 0:
+                print("Time cannot be less than 0")
+            else:
+                break
+        except ValueError:
+            print("Invalid time entered...")
+    timeVariable = int(timeVariable) * 60
     
     while(True):
         scrapMarketPrice(urlInput, float(lowerBoundInput), float(upperBoundInput)) #Yahoo Finance company link, and minimumPrice and maximumPrice
-        time.sleep(60) #300 seconds == 5 minutes. Will check every 1 minute for updated price.
+        time.sleep(timeVariable) 
 
 main()
