@@ -1,0 +1,91 @@
+import requests
+from bs4 import BeautifulSoup
+import smtplib
+import time
+import datetime
+
+#THIS CODE REQUIRES 2 EMAILS. 1 Gmail to send the email, and another to receive the email.
+#Note this code runs with my Gmail, but for privacy purposes I have blanked out my Gmail. 
+#Feel free to Insert your own Gmail and password to try!
+
+#Stock Market price reminder (YAHOO FINANCE)
+
+def scrapMarketPrice(URL, minimumPrice, maximumPrice):
+    headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.120 Safari/537.36"} #My user Agent (Retrieves, renders and facilitates end user interaction with Web content)
+
+    page = requests.get(URL, headers=headers)          #Grab URL and headers
+    soup = BeautifulSoup(page.content, 'html.parser')  #print out HTML content on the page using 'content' property
+
+    price = soup.find("span", {"class": "Trsdu(0.3s) Fw(b) Fz(36px) Mb(-4px) D(ib)"}).get_text()
+    stockName = soup.find("h1", {"class": "D(ib) Fz(18px)"}).get_text()
+    
+    if(float(price) < minimumPrice):
+        send_mail(0, stockName, minimumPrice, URL)
+    if(float(price) > maximumPrice):
+        send_mail(1, stockName, maximumPrice, URL)
+    print("The stock price is between minimum and maximum price... will check again in 1 minute.")
+
+#Sends email
+def send_mail(identifyVal, nameOfStock, price, URL):
+        server = smtplib.SMTP("smtp.gmail.com", 587)   #The smtplib module defines an SMTP client session object that can be used to send mail to any Internet machine with an SMTP or ESMTP listener daemon
+        server.ehlo()
+        server.starttls()
+        server.ehlo()
+
+        server.login('GMAIL', 'Password') # <----------------------    !!!INSERT GMAIL AND PASSWORD HERE!!!
+        if identifyVal == 0:                           #If equal 0, the price has fallen below minimumPrice                                 
+            subject = nameOfStock + " has fallen below: $" + str(price)
+        else:                                          #If equal to anything else, the price has risen above maximumPrice
+            subject = nameOfStock + " has risen above: $" + str(price)
+        body = "Check the Yahoo Link: " + URL
+        msg = f"Subject: {subject}\n\n{body}"
+
+        server.sendmail('Same GMAIL as the one above', 'Another Email to receive the emails', msg)    #<-------------------- !!!INSERT GMAIL AND ANOTHER RECEIVING EMAIL!!!
+
+        print("Email sent")
+
+        server.quit()
+        
+
+def main():
+
+
+
+    urlInput = input("Please enter the URL (Yahoo Finance) of the desired Company you wish to keep track of: ")
+    
+    
+    
+    while True:
+        lowerBoundInput = input("Enter Lower Bound target price: ")
+        try:
+            val = float(lowerBoundInput)
+            if val < 0:
+                print("price cannot be less than Zero")
+            if val > 0:
+                break
+        except ValueError:
+            print("Price must be a number...")
+                
+
+
+        
+    while True:
+        upperBoundInput = input("Enter Upper Bound target price: ")
+        try:
+            val = float(upperBoundInput)
+            if val < 0:
+                print("price cannot be less than Zero")
+            if val > float(lowerBoundInput):
+                break
+            else:
+                print("Upper bound price cannot be less than Lower bound price...")
+        except ValueError:
+            print("Price must be a number...")
+            
+                
+    
+    while(True):
+        scrapMarketPrice(urlInput, float(lowerBoundInput), float(upperBoundInput)) #Yahoo Finance company link, and minimumPrice and maximumPrice
+        time.sleep(60) #300 seconds == 5 minutes. Will check every 1 minute for updated price.
+
+main()
